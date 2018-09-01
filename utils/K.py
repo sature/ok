@@ -2,7 +2,7 @@ import pandas as pd
 import threading
 import ccxt
 from datetime import datetime
-from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ExchangeError, RequestTimeout
 import logging
 from utils.Observable import Observable
 
@@ -75,7 +75,7 @@ class _K(Observable):
             }), columns=K.COLUMNS)
             df.set_index(K.TIMESTAMP, inplace=True)
             self.append_data(df)
-        except ExchangeError as e:
+        except (RequestTimeout, ExchangeError) as e:
             logging.error("Error retrieving Kline for %s" % self.name)
             logging.info(str(e))
             return
