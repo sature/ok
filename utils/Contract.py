@@ -1,10 +1,10 @@
 import threading
-from utils.ApiKey import ApiKey
 import ccxt
 import time
-from utils.Observable import Observable
-from ccxt.base.errors import ExchangeError, RequestTimeout
 import logging
+from Observable import Observable
+from Application import Application as App
+from ccxt.base.errors import ExchangeError, RequestTimeout
 
 
 class ContractException(Exception):
@@ -42,7 +42,7 @@ class Contract(Observable):
 
         for i in range(5):
             try:
-                self.exchange = ccxt.okex(ApiKey.PARAMETER)
+                self.exchange = ccxt.okex({'API_KEY': App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')})
                 self.exchange.load_markets()
                 self.exchange.options['defaultContractType'] = contract_type
                 break
