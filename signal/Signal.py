@@ -1,5 +1,5 @@
-from utils.Observable import Observable
-from utils.K import K
+from utils import Observable
+from utils import K
 import logging
 
 

@@ -7,6 +7,7 @@ from Application import Application as App
 from K import K
 from Shout import Shout
 from Contract import Contract
+from Observable import Observable
 
-__all__ = ['App', 'K', 'Contract', 'Shout']
+__all__ = ['App', 'K', 'Contract', 'Observable', 'Shout']
 

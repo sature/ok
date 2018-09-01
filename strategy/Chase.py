@@ -1,4 +1,10 @@
-from Strategy import Strategy as S
+
+if __name__ == '__main__':
+    import os,sys
+    sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
+    print(sys.path)
+
+import Strategy as S
 from utils import Contract
 import logging
 

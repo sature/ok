@@ -1,6 +1,12 @@
-from utils.K import K
-from signal.Signal import Signal
+
+if __name__ == '__main__':
+    import os,sys
+    sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
+    print(sys.path)
+    
 import logging
+from utils import K
+from Signal import Signal
 
 
 class DualThrust(Signal):
@@ -68,9 +74,9 @@ class DualThrust(Signal):
 if __name__ == "__main__":
 
     import ccxt
-
+    
     def gaga(e):
-            print('DualThrust signal =', e.signal)
+            print('DualThrust signal =', e.source.s)
 
     logging.basicConfig(level=logging.INFO)
 
