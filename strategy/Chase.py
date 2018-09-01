@@ -1,5 +1,5 @@
-from Strategy.S import S
-from utils.Contract import Contract
+from Strategy import Strategy as S
+from utils import Contract
 import logging
 
 
