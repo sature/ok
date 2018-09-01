@@ -1,12 +1,19 @@
+#!/usr/bin/python3
+
+import os
 import ccxt
 from utils.Shout import Shout
 from utils.K2 import K
+from utils.Application import Application as App
+
+App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
+print(App.config.get('GLOBAL', 'env'))
 
 # Shout.login();
 Shout.send("程序启动！");
 
 market_symbol = 'EOS/USDT'
-okex = ccxt.okex({'apiKey': '3bc75ab2-37d6-43bc-b7f7-733999eff040', 'secret': 'C6B6B482C796E804F45CE715CAA4FCD3'})
+okex = ccxt.okex({'API_KEY':App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')})
 okex.load_markets()
 
 # List all the markets of the exchange
