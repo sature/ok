@@ -1,10 +1,10 @@
 import pandas as pd
 import threading
 import ccxt
-from datetime import datetime
-from ccxt.base.errors import ExchangeError, RequestTimeout
 import logging
-from utils.Observable import Observable
+from datetime import datetime as dt
+from ccxt.base.errors import ExchangeError, RequestTimeout
+from Observable import Observable
 
 
 class K:
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     def gaga(event):
         k = event.source
-        print(datetime.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
+        print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
 
     k = K.k(ccxt.okex(), symbol='eos_usd', period='1min', contract_type='quarter')
     k.subscribe(gaga)

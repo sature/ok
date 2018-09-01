@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
 import os
+import sys
+from datetime import datetime as dt
+print(sys.path)
+import logging
 import ccxt
-from utils.Shout import Shout
-from utils.K2 import K
-from utils.Application import Application as App
+from utils import *
 
 App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
-print(App.config.get('GLOBAL', 'env'))
 
 # Shout.login();
 Shout.send("程序启动！");
@@ -15,6 +16,17 @@ Shout.send("程序启动！");
 market_symbol = 'EOS/USDT'
 okex = ccxt.okex({'API_KEY':App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')})
 okex.load_markets()
+
+
+logging.basicConfig(level=logging.INFO)
+
+def gaga(event):
+    k = event.source
+    print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
+
+k = K.k(ccxt.okex(), symbol='eos_usd', period='1min', contract_type='quarter')
+k.subscribe(gaga)
+k.start()
 
 # List all the markets of the exchange
 # symbols = []
@@ -34,8 +46,8 @@ okex.load_markets()
 
 # Price ticker
 # print(okex.id, 'price ticker', okex.fetch_ticker(market_symbol))
-okex.options['defaultContractType'] = 'quarter'
-print(okex.id, 'price ticker', okex.fetch_ticker("EOS/USD"))
+#okex.options['defaultContractType'] = 'quarter'
+#print(okex.id, 'price ticker', okex.fetch_ticker("EOS/USD"))
 
 # Candlestick charts
 # CandleSticksStore(okex, market_symbol).start()
