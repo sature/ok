@@ -1,6 +1,0 @@
-
-class ApiKey:
-
-    API_KEY = '3bc75ab2-37d6-43bc-b7f7-733999eff040'
-    SECRET = 'C6B6B482C796E804F45CE715CAA4FCD3'
-    PARAMETER = {'apiKey': API_KEY, 'secret': SECRET}
