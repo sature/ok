@@ -3,6 +3,8 @@ import logging
 from configparser import ConfigParser
 from WechatHandler import WechatHandler
 
+logger = logging.getLogger('rich')
+
 
 class Application:
 
@@ -23,7 +25,8 @@ class Application:
         if 'wechat' in loggers:
             wechat = WechatHandler()
             wechat.setLevel(logging.WARNING)
-            logging.getLogger('rich').addHandler(wechat)
+            logger.addHandler(wechat)
+            logger.warning(u'微信登录成功!')
 
     @staticmethod
     def get_exchange(contract_type='quarter'):

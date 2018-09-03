@@ -19,8 +19,6 @@ class WechatHandler(logging.Handler):
         if WechatHandler.username is None:
             WechatHandler.username = WechatHandler.chat.search_friends(name='杨硕')[0]['UserName']
 
-        logger.warning(u'微信登录成功!')
-
     def emit(self, record):
         self.chat.send(self.format(record), toUserName=WechatHandler.username)
 
