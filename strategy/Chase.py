@@ -58,20 +58,21 @@ class Chase(S):
         type_c = [u'无效操作', u'开多', u'开空', u'平多', u'平空']
         if o.status == Contract.Status.ORDERING \
                 or o.status == Contract.Status.CLOSING:
-            print('%s_%s*%s*' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                  '$%.3f(%d张)' % (0 if o.price is None else o.price, o.amount))
+            logger.warning('%s_%s*%s*' % (o.symbol, o.contract_type, type_c[o.order_type]),
+                           '$%.3f(%d张)' % (0 if o.price is None else o.price, o.amount))
         elif o.status == Contract.Status.ORDERED:
-            print('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                  '$%.3f(%d张), 费用%.5f%s' % (o.price, o.amount, o.fee, currency))
+            logger.warning('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
+                           '$%.3f(%d张), 费用%.5f%s' % (o.price, o.amount, o.fee, currency))
         elif o.status == Contract.Status.CLOSED:
-            print('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                  '$%.3f(%d张)' % (o.price, o.amount),
-                  ', 利润%.5f%s (%s), 费用%.5f%s'
-                  % (o.margin, currency, '{:.2%}'.format(o.margin_rate), o.fee, currency))
+            logger.warning('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
+                           '$%.3f(%d张)' % (o.price, o.amount),
+                           ', 利润%.5f%s (%s), 费用%.5f%s'
+                           % (o.margin, currency, '{:.2%}'.format(o.margin_rate), o.fee, currency))
         elif o.status == Contract.Status.CANCELLED:
-            print('%s_%s取消了*%s* $%.3f(%d张)' % (o.symbol, o.contract_type, type_c[o.order_type], o.price, o.amount))
+            logger.warning('%s_%s取消了*%s* $%.3f(%d张)'
+                           % (o.symbol, o.contract_type, type_c[o.order_type], o.price, o.amount))
         else:
-            print('%s_%s错误的通知类型*%s*' % (o.symbol, o.contract_type, o.status))
+            logger.error('%s_%s错误的通知类型*%s*' % (o.symbol, o.contract_type, o.status))
 
 
 if __name__ == "__main__":

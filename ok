@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import logging
 from datetime import datetime as dt
 from utils import *
 from strategy import Chase
