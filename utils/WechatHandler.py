@@ -16,19 +16,25 @@ class WechatHandler(logging.Handler):
 
         if WechatHandler.chat is None:
             WechatHandler.chat = itchat
-        if WechatHandler.userName is None:
-            WechatHandler.userName = WechatHandler.chat.search_friends(name='杨硕')[0]['UserName']
+        if WechatHandler.username is None:
+            WechatHandler.username = WechatHandler.chat.search_friends(name='杨硕')[0]['UserName']
 
     def emit(self, record):
-        self.chat.send(self.format(record), toUserName=self.userName)
-
-        pass
+        self.chat.send(self.format(record), toUserName=WechatHandler.username)
 
 
 if __name__ == '__main__':
 
-    handler = WechatHandler()
-    logger = logging.getLogger('test')
-    logger.addHandler(handler)
+    logger = logging.getLogger('rich')
+    
+    wechat = WechatHandler()
+    wechat.setLevel(logging.warning())
+    logger.addHandler(wechat)
 
-    logger.warning("gaga")
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.info())
+    logger.addHandler(ch)
+
+    logger.warning("I'm a warning")
+    logger.info("I'm an info")
+    logger.debug("I'm a debug")
