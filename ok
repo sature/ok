@@ -7,11 +7,6 @@ from strategy import Chase
 from sign import DualThrust
 
 
-def gaga(event):
-    k = event.source
-    print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
-
-
 App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
 
 chase = Chase()
