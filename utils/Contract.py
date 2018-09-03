@@ -33,9 +33,9 @@ class Contract(Observable):
         CLOSING = 'closing'
         CLOSED = 'closed'
 
-    FEE_RATE = 0.0001
+    FEE_RATE = 0.0005
 
-    def __init__(self, symbol, contract_type=ContractType.QUARTER, dry_run=False):
+    def __init__(self, exchange, symbol, contract_type, dry_run=True):
         Observable.__init__(self)
         self.id = None
         self.dry_run = dry_run
@@ -52,6 +52,7 @@ class Contract(Observable):
         else:
             raise ContractException('Can not load exchange')
 
+        self.exchange = exchange
         self.symbol = symbol
         self.contract_type = contract_type
 
@@ -379,7 +380,7 @@ if __name__ == "__main__":
         else:
             print('%s_%s错误的通知类型*%s*' % (o.symbol, o.contract_type, o.status))
 
-    c = Contract(symbol='EOS/USD', contract_type=Contract.ContractType.QUARTER)
+    c = Contract(App.get_exchange('quarter'), symbol='EOS/USD', contract_type='quarter')
     c.subscribe(gaga)
     # c.order(Contract.OrderType.SELL, price=5)
     # time.sleep(20)

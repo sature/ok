@@ -19,9 +19,6 @@ s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
 s.set_parameters(n=10, k1=0.5, k2=0.5)
 chase.add_signal(s)
 
-# # Shout.login();
-# Shout.send("程序启动！")
-#
 # List all the markets of the exchange
 # symbols = []
 # for market in okex.fetch_markets():

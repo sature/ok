@@ -43,7 +43,10 @@ class Chase(S):
         for act in Chase.actions[(signal.is_break(), signal.is_leak())][self.status]:
             logger.info('Strategy(Chase) is doing %d' % act)
             if act in [Contract.OrderType.BUY, Contract.OrderType.SELL]:
-                self.contract = Contract(signal.symbol, signal.exchange.options['defaultContractType'], dry_run=True)
+                self.contract = Contract(signal.exchange,
+                                         signal.symbol,
+                                         signal.exchange.options['defaultContractType'],
+                                         dry_run=True)
                 self.contract.subscribe(self.contract_result)
                 self.contract.order(act, price=None, amount=self.amount)
                 self.status = 'holding_buy' if act == Contract.OrderType.BUY else 'holding_sell'
@@ -58,16 +61,14 @@ class Chase(S):
         type_c = [u'无效操作', u'开多', u'开空', u'平多', u'平空']
         if o.status == Contract.Status.ORDERING \
                 or o.status == Contract.Status.CLOSING:
-            logger.warning('%s_%s*%s*' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                           '$%.3f(%d张)' % (0 if o.price is None else o.price, o.amount))
+            logger.warning('%s_%s*%s*$%.3f(%d张)'
+                           % (o.symbol, o.contract_type, type_c[o.order_type], 0 if o.price is None else o.price, o.amount))
         elif o.status == Contract.Status.ORDERED:
-            logger.warning('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                           '$%.3f(%d张), 费用%.5f%s' % (o.price, o.amount, o.fee, currency))
+            logger.warning('%s_%s*%s完成*$%.3f(%d张), 费用%.5f%s'
+                           % (o.symbol, o.contract_type, type_c[o.order_type], o.price, o.amount, o.fee, currency))
         elif o.status == Contract.Status.CLOSED:
-            logger.warning('%s_%s*%s*完成' % (o.symbol, o.contract_type, type_c[o.order_type]),
-                           '$%.3f(%d张)' % (o.price, o.amount),
-                           ', 利润%.5f%s (%s), 费用%.5f%s'
-                           % (o.margin, currency, '{:.2%}'.format(o.margin_rate), o.fee, currency))
+            logger.warning('%s_%s*%s完成*$%.3f(%d张), 利润%.5f%s (%s), 费用%.5f%s'
+                           % (o.symbol, o.contract_type, type_c[o.order_type], o.price, o.amount, o.margin, currency, '{:.2%}'.format(o.margin_rate), o.fee, currency))
         elif o.status == Contract.Status.CANCELLED:
             logger.warning('%s_%s取消了*%s* $%.3f(%d张)'
                            % (o.symbol, o.contract_type, type_c[o.order_type], o.price, o.amount))
