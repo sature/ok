@@ -14,7 +14,12 @@ class Application:
         Application.config = ConfigParser()
         Application.config.read(f)
 
+        logging.basicConfig(level=logging.INFO)
+
         loggers = Application.config.get('LOGGING', 'LOGGER').split()
+
+        logging.getLogger('rich').info('loggers: %s' % str(loggers))
+
         if 'wechat' in loggers:
             wechat = WechatHandler()
             wechat.setLevel(logging.WARNING)

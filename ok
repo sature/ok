@@ -13,8 +13,6 @@ def gaga(event):
     print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
 
 
-logging.basicConfig(level=logging.INFO)
-
 App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
 
 chase = Chase()

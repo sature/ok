@@ -6,7 +6,7 @@ from ccxt.base.errors import ExchangeError, RequestTimeout
 from Observable import Observable
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rich')
 
 
 class K:

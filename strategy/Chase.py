@@ -7,6 +7,7 @@ from Strategy import Strategy as S
 from utils import Contract
 import logging
 
+logger = logging.getLogger('rich')
 
 class Chase(S):
 
@@ -33,14 +34,14 @@ class Chase(S):
         self.holding = 0
         self.set_name('Chase(%d)' % self.amount)
         self.contract = None
-        logging.info('Create Strategy %s' % self.name)
+        logger.info('Create Strategy %s' % self.name)
 
     def check(self, event):
 
         signal = event.source
 
         for act in Chase.actions[(signal.is_break(), signal.is_leak())][self.status]:
-            logging.info('Strategy(Chase) is doing %d' % act)
+            logger.info('Strategy(Chase) is doing %d' % act)
             if act in [Contract.OrderType.BUY, Contract.OrderType.SELL]:
                 self.contract = Contract(signal.symbol, signal.exchange.options['defaultContractType'], dry_run=True)
                 self.contract.subscribe(self.contract_result)
@@ -79,12 +80,9 @@ if __name__ == "__main__":
     from sign import DualThrust
     from utils import App
 
-    logging.basicConfig(level=logging.INFO)
-
     App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/../global.conf')
 
     chase = Chase()
     s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
     s.set_parameters(n=10, k1=0.5, k2=0.5)
     chase.add_signal(s)
-

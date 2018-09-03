@@ -8,7 +8,7 @@ from utils import K
 from Signal import Signal
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rich')
 
 
 class DualThrust(Signal):
