@@ -1,7 +1,7 @@
 import logging
 
 
-class S:
+class Strategy:
 
     k = None
     id = 0
@@ -10,7 +10,7 @@ class S:
         self.signals = []
         self.name = 'Strategy[-]'
         self.contract = None
-        S.id += 1
+        Strategy.id += 1
 
     def add_signal(self, s):
 
@@ -32,7 +32,7 @@ class S:
         logging.error('%s is not handling signal %s' % (self.name, event.source.name))
 
     def set_name(self, name):
-        self.name = 'Strategy[%s/%d]' % (name, S.id)
+        self.name = 'Strategy[%s/%d]' % (name, Strategy.id)
 
     def log(self, msg):
         return 'Strategy[%s] ' % self.name + msg

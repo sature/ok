@@ -4,7 +4,7 @@ if __name__ == '__main__':
     sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
     print(sys.path)
 
-import Strategy as S
+from Strategy import Strategy as S
 from utils import Contract
 import logging
 
@@ -74,13 +74,14 @@ class Chase(S):
 if __name__ == "__main__":
 
     import ccxt
-    from signal.DualThrust import DualThrust
-    from utils.ApiKey import ApiKey
+    from signal import DualThrust
+    from utils import App
 
     logging.basicConfig(level=logging.INFO)
 
     chase = Chase()
-    s = DualThrust(ccxt.okex(ApiKey.PARAMETER), "EOS/USD", period='1min', contract_type='quarter')
+    s = DualThrust(ccxt.okex({'API_KEY': App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')}), 
+                   "EOS/USD", period='1min', contract_type='quarter')
     s.set_parameters(n=10, k1=0.5, k2=0.5)
     chase.add_signal(s)
 
