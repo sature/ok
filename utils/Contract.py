@@ -40,18 +40,6 @@ class Contract(Observable):
         self.id = None
         self.dry_run = dry_run
 
-        for i in range(5):
-            try:
-                self.exchange = ccxt.okex({'API_KEY': App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')})
-                self.exchange.load_markets()
-                self.exchange.options['defaultContractType'] = contract_type
-                break
-            except ExchangeError as e:
-                logging.error('Error loading exchange')
-                logging.error(str(e))
-        else:
-            raise ContractException('Can not load exchange')
-
         self.exchange = exchange
         self.symbol = symbol
         self.contract_type = contract_type
