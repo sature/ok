@@ -3,13 +3,14 @@ import logging
 import pandas as pd
 from datetime import datetime as dt
 from ccxt.base.errors import ExchangeError, RequestTimeout
+from flask_restful import Resource
+from flask import request
 from Observable import Observable
-
 
 logger = logging.getLogger('rich')
 
 
-class K:
+class K(Resource):
 
     TIMESTAMP = 'timestamp'
     OPEN = 'open'
@@ -41,6 +42,29 @@ class K:
     def private_symbol(symbol):
         return symbol if '/' not in symbol else symbol.lower().replace('/', '_')
 
+    @staticmethod
+    def register_rest_api(api):
+        api.add_resource(K, '/k')
+
+    def get(self):
+        period = request.args.get('period')
+        exchange = request.args.get('exchange')
+        symbol = request.args.get('symbol')
+        contract_type = request.args.get('type')
+
+        if (period, exchange, symbol, contract_type) == (None, None, None, None):
+            return {'running': [{
+                'period': p,
+                'k': [{'exchange': exchange_name, 'symbol': symbol, 'type': contract_type}
+                      for (exchange_name, symbol, contract_type) in K.ks[p].keys()]
+            } for p in K.ks.keys()]}
+        else:
+            return {
+                'period': period,
+                'exchange': exchange,
+                'symbol': symbol,
+                'type': contract_type
+            }
 
 class _K(Observable):
 
