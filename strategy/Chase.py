@@ -1,8 +1,7 @@
 
 if __name__ == '__main__':
-    import os,sys
+    import os, sys
     sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
-    print(sys.path)
 
 from Strategy import Strategy as S
 from utils import Contract
@@ -10,6 +9,19 @@ import logging
 
 
 class Chase(S):
+
+    actions = dict({
+        # (break, leak)
+        (True, False): dict({'clean_hands': [Contract.OrderType.BUY],
+                             'holding_buy': [],
+                             'holding_sell': [Contract.OrderType.CLOSE_SELL, Contract.OrderType.BUY]}),
+        (False, True): dict({'clean_hands': [Contract.OrderType.SELL],
+                             'holding_buy': [Contract.OrderType.CLOSE_BUY, Contract.OrderType.SELL],
+                             'holding_sell': []}),
+        (True, True): dict({'clean_hands': [], 'holding_buy': [], 'holding_sell': []}),
+        (False, False): dict({'clean_hands': [], 'holding_buy': [], 'holding_sell': []}),
+    })
+
     '''
     buy when price breaks upper boundary and sell when price leaks lower boundary
     '''
@@ -19,28 +31,18 @@ class Chase(S):
         self.status = 'clean_hands' # clean_hands/holding_buy/holding_sell
         self.amount = amount
         self.holding = 0
-        self.actions = dict({
-            # (break, leak)
-            (True, False): dict({'clean_hands': [Contract.OrderType.BUY],
-                                 'holding_buy': [],
-                                 'holding_sell': [Contract.OrderType.CLOSE_SELL, Contract.OrderType.BUY]}),
-            (False, True): dict({'clean_hands': [Contract.OrderType.SELL],
-                                 'holding_buy': [Contract.OrderType.CLOSE_BUY, Contract.OrderType.SELL],
-                                 'holding_sell': []}),
-            (True, True): dict({'clean_hands': [], 'holding_buy': [], 'holding_sell': []}),
-            (False, False): dict({'clean_hands': [], 'holding_buy': [], 'holding_sell': []}),
-        })
         self.set_name('Chase(%d)' % self.amount)
+        self.contract = None
         logging.info('Create Strategy %s' % self.name)
 
     def check(self, event):
 
-        s = event.source
+        signal = event.source
 
-        for act in self.actions[(s.is_break(), s.is_leak())][self.status]:
+        for act in Chase.actions[(signal.is_break(), signal.is_leak())][self.status]:
             logging.info('Strategy(Chase) is doing %d' % act)
             if act in [Contract.OrderType.BUY, Contract.OrderType.SELL]:
-                self.contract = Contract(s.symbol, s.contract_type, dry_run=True)
+                self.contract = Contract(signal.symbol, signal.exchange.options['defaultContractType'], dry_run=True)
                 self.contract.subscribe(self.contract_result)
                 self.contract.order(act, price=None, amount=self.amount)
                 self.status = 'holding_buy' if act == Contract.OrderType.BUY else 'holding_sell'
@@ -73,15 +75,16 @@ class Chase(S):
 
 if __name__ == "__main__":
 
-    import ccxt
-    from signal import DualThrust
+    from utils import App
+    from sign import DualThrust
     from utils import App
 
     logging.basicConfig(level=logging.INFO)
 
+    App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/../global.conf')
+
     chase = Chase()
-    s = DualThrust(ccxt.okex({'API_KEY': App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')}), 
-                   "EOS/USD", period='1min', contract_type='quarter')
+    s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
     s.set_parameters(n=10, k1=0.5, k2=0.5)
     chase.add_signal(s)
 

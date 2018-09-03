@@ -1,10 +1,12 @@
-import pandas as pd
 import threading
-import ccxt
 import logging
+import pandas as pd
 from datetime import datetime as dt
 from ccxt.base.errors import ExchangeError, RequestTimeout
 from Observable import Observable
+
+
+logger = logging.getLogger(__name__)
 
 
 class K:
@@ -21,9 +23,10 @@ class K:
     ks = dict()
 
     @staticmethod
-    def k(exchange, symbol, period, contract_type):
+    def k(exchange, symbol, period):
 
         symbol = K.private_symbol(symbol)
+        contract_type = exchange.options['defaultContractType']
 
         K.ks[period] = dict() if period not in K.ks.keys() else K.ks[period]
 
@@ -56,11 +59,11 @@ class _K(Observable):
         self.speed = _K.SLOW
         self.k = None
         self.started = False
-        logging.info('New K instance %s' % self.name)
+        logger.info('New K instance %s' % self.name)
 
     def start(self):
         if not self.started:
-            logging.info('%s: Started with %d seconds polling period' % (self.name, self.speed))
+            logger.info('%s: Started with %d seconds polling period' % (self.name, self.speed))
             self._start()
             self.started = True
 
@@ -76,20 +79,20 @@ class _K(Observable):
             df.set_index(K.TIMESTAMP, inplace=True)
             self.append_data(df)
         except (RequestTimeout, ExchangeError) as e:
-            logging.error("Error retrieving Kline for %s" % self.name)
-            logging.info(str(e))
+            logger.error("Error retrieving Kline for %s" % self.name)
+            logger.info(str(e))
             return
 
     def append_data(self, df):
         if len(df) == 0:
-            logging.warning('(%s) received data frame with length 0, skipped it' % self.name)
+            logger.warning('(%s) received data frame with length 0, skipped it' % self.name)
             return
         self.k = df.combine_first(self.k) if self.k is not None else df
         last_period = self.k.iloc[-1]
         self.k = self.k.tail(_K.MAX_LENGTH)
         new_k = True if (self.last_period is None) or (self.timestamp() != last_period.name) else False
         self.last_period = last_period
-        logging.info('%s: Firing new K, timestamp = %d' % (self.name, self.timestamp()))
+        logger.info('%s: Firing new K, timestamp = %d' % (self.name, self.timestamp()))
         self.fire(new_k=new_k)
 
     def data(self):
@@ -104,12 +107,17 @@ class _K(Observable):
 
 if __name__ == "__main__":
 
+    import os
+    from Application import Application as App
+
+    App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/../global.conf')
+
     logging.basicConfig(level=logging.INFO)
 
     def gaga(event):
         k = event.source
         print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
 
-    k = K.k(ccxt.okex(), symbol='eos_usd', period='1min', contract_type='quarter')
+    k = K.k(App.get_exchange('quarter'), symbol='eos_usd', period='1min')
     k.subscribe(gaga)
     k.start()

@@ -15,12 +15,11 @@ class Signal(Observable):
     BREAK_RATIO = 'break_ratio'
     LEAK_RATIO = 'leak_ratio'
 
-    def __init__(self, exchange, symbol, period='1h', contract_type='quarter'):
+    def __init__(self, exchange, symbol, period='1h'):
         Observable.__init__(self)
         self.exchange = exchange
         self.symbol = symbol
         self.period = period
-        self.contract_type = contract_type
         self.name = 'Signal[-]'
         self.b = dict({Signal.Boundary.UPPER: None, Signal.Boundary.MIDDLE: None, Signal.Boundary.LOWER: None})
         self.s = dict({Signal.BREAK: False, Signal.LEAK: False, Signal.BREAK_RATIO: 0, Signal.LEAK_RATIO: 0})
@@ -83,7 +82,7 @@ class Signal(Observable):
         self.s[Signal.LEAK_RATIO] = (current - self.get_middle()) / (self.get_lower() - self.get_middle())
 
     def start(self):
-        k = K.k(self.exchange, symbol=self.symbol, period=self.period, contract_type=self.contract_type)
+        k = K.k(self.exchange, symbol=self.symbol, period=self.period)
         k.subscribe(self.track)
         k.start()
 

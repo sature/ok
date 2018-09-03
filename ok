@@ -1,33 +1,30 @@
 #!/usr/bin/python3
 
 import os
-import sys
-from datetime import datetime as dt
-print(sys.path)
 import logging
-import ccxt
+from datetime import datetime as dt
 from utils import *
+from strategy import Chase
+from sign import DualThrust
 
-App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
-
-# Shout.login();
-Shout.send("程序启动！");
-
-market_symbol = 'EOS/USDT'
-okex = ccxt.okex({'API_KEY':App.config.get('OKEX', 'API_KEY'), 'SECRET': App.config.get('OKEX', 'SECRET')})
-okex.load_markets()
-
-
-logging.basicConfig(level=logging.INFO)
 
 def gaga(event):
     k = event.source
     print(dt.now(), len(k.data()), k.timestamp(), k.current()[K.VOLUME], event.new_k)
 
-k = K.k(ccxt.okex(), symbol='eos_usd', period='1min', contract_type='quarter')
-k.subscribe(gaga)
-k.start()
 
+logging.basicConfig(level=logging.INFO)
+
+App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
+
+chase = Chase()
+s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
+s.set_parameters(n=10, k1=0.5, k2=0.5)
+chase.add_signal(s)
+
+# # Shout.login();
+# Shout.send("程序启动！")
+#
 # List all the markets of the exchange
 # symbols = []
 # for market in okex.fetch_markets():
@@ -82,9 +79,9 @@ k.start()
 #
 # N = 20
 # for n in range(N, len(period_df)-1):
-#     signal = DualThrust(okex, market_symbol).signal(
+#     sign = DualThrust(okex, market_symbol).sign(
 #         period_df.loc[n-N:n], N, K1=1, K2=1, opening=period_df['open'][n], current=period_df['close'][0])
-#     print(signal)
+#     print(sign)
 # print(period_df.rolling(20))
 
 # print(okex.privatePostFutureUserinfo())

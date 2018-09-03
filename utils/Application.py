@@ -13,7 +13,7 @@ class Application:
         Application.config.read(f)
 
     @staticmethod
-    def exchange(contract_type='quarter'):
+    def get_exchange(contract_type='quarter'):
 
         if Application.config is None:
             return None

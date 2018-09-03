@@ -2,11 +2,13 @@
 if __name__ == '__main__':
     import os,sys
     sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
-    print(sys.path)
-    
+
 import logging
 from utils import K
 from Signal import Signal
+
+
+logger = logging.getLogger(__name__)
 
 
 class DualThrust(Signal):
@@ -15,11 +17,12 @@ class DualThrust(Signal):
     K1 = 'K1'
     K2 = 'K2'
 
-    def __init__(self, exchange, symbol, period='1h', contract_type='quarter'):
-        Signal.__init__(self, exchange, symbol, period, contract_type)
-        self.set_name('DT(%s,%s,%s,%s)' % (exchange.name, symbol, period, contract_type))
+    def __init__(self, exchange, symbol, period='1h'):
+        Signal.__init__(self, exchange, symbol, period)
+        self.set_name('DT(%s,%s,%s,%s)' % (exchange.name, symbol, period, exchange.options['defaultContractType']))
         self.p = dict({DualThrust.N: 1, DualThrust.K1: 1, DualThrust.K2: 1})
         self.d = None
+        logger.info('Created signal %s' % self.name)
 
     def track(self, event):
         # event
@@ -31,7 +34,7 @@ class DualThrust(Signal):
         if event.new_k or self.get_upper() is None or self.get_lower() is None:
             self.update_boundary(o.data())
         if self.get_upper() is None or self.get_lower() is None:
-            logging.info('%s, cannot work out a boundary' % self.name)
+            logger.info('%s, cannot work out a boundary' % self.name)
             return
 
         current = o.current()[K.CLOSE]
@@ -40,7 +43,7 @@ class DualThrust(Signal):
         self.set_leak(current < self.get_lower())
         self.set_ratio(current)
 
-        logging.info('%s: Price = %.3f, Signal = {break=(%r, %s), leak=(%r, %s)}'
+        logger.info('%s: Price = %.3f, Signal = {break=(%r, %s), leak=(%r, %s)}'
                      % (self.name, current,
                         self.is_break(), '{:.1%}'.format(self.get_break_ratio()),
                         self.is_leak(), '{:.1%}'.format(self.get_leak_ratio())))
@@ -49,11 +52,10 @@ class DualThrust(Signal):
         length = len(k)
         if length < self.p[DualThrust.N] + 1:
             # length of k lines are not enough, reset to update boundary when next k coming
-            logging.warning('k length = %d, which is not enough for boundary calculation.' % length)
+            logger.warning('k length = %d, which is not enough for boundary calculation.' % length)
             self.set_upper(None)
             self.set_lower(None)
             self.set_middle(None)
-            self.b = {'upper': None, 'lower': None}
             return
 
         opening = k.iloc[-1][K.OPEN]
@@ -63,24 +65,27 @@ class DualThrust(Signal):
         self.set_lower(opening - self.p[DualThrust.K2] * deviation)
         self.set_middle(opening)
 
-        logging.info('%s: updated boundary to (%.3f<----%.3f---->%.3f)'
+        logger.info('%s: updated boundary to (%.3f<----%.3f---->%.3f)'
                      % (self.name, self.get_lower(), self.get_middle(), self.get_upper()))
 
     def set_parameters(self, n, k1=1, k2=1):
         self.p = {DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2}
-        logging.info('%s: set parameters as %s' %(self.name, self.p))
+        logger.info('%s: set parameters as %s' %(self.name, self.p))
 
 
 if __name__ == "__main__":
 
-    import ccxt
-    
+    from utils import App
+
+
     def gaga(e):
-            print('DualThrust signal =', e.source.s)
+            print('DualThrust sign =', e.source.s)
+
+    App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/../global.conf')
 
     logging.basicConfig(level=logging.INFO)
 
-    s = DualThrust(ccxt.okex(), symbol='eos_usd', period='1min', contract_type='quarter')
+    s = DualThrust(App.get_exchange('quarter'), symbol='eos_usd', period='1min')
     s.set_parameters(5, k1=0.4, k2=0.5)
     s.subscribe(gaga)
     s.start()
