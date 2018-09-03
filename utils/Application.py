@@ -1,5 +1,7 @@
-from configparser import ConfigParser
 import ccxt
+import logging
+from configparser import ConfigParser
+from WechatHandler import WechatHandler
 
 
 class Application:
@@ -11,6 +13,12 @@ class Application:
     def read_config(f):
         Application.config = ConfigParser()
         Application.config.read(f)
+
+        loggers = Application.config.get('LOGGING', 'LOGGER').split()
+        if 'wechat' in loggers:
+            wechat = WechatHandler()
+            wechat.setLevel(logging.WARNING)
+            logging.getLogger('rich').addHandler(wechat)
 
     @staticmethod
     def get_exchange(contract_type='quarter'):

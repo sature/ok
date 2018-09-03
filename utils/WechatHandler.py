@@ -25,14 +25,15 @@ class WechatHandler(logging.Handler):
 
 if __name__ == '__main__':
 
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('rich')
-    
+
     wechat = WechatHandler()
-    wechat.setLevel(logging.warning())
+    wechat.setLevel(logging.WARNING)
     logger.addHandler(wechat)
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.info())
+    ch.setLevel(logging.INFO)
     logger.addHandler(ch)
 
     logger.warning("I'm a warning")
