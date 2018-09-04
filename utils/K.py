@@ -55,16 +55,18 @@ class K(Resource):
         if (period, exchange, symbol, contract_type) == (None, None, None, None):
             return {'running': [{
                 'period': p,
-                'k': [{'exchange': exchange_name, 'symbol': symbol, 'type': contract_type}
-                      for (exchange_name, symbol, contract_type) in K.ks[p].keys()]
+                'k': [{'exchange': exchange, 'symbol': symbol, 'type': contract_type}
+                      for (exchange, symbol, contract_type) in K.ks[p].keys()]
             } for p in K.ks.keys()]}
         else:
             return {
                 'period': period,
                 'exchange': exchange,
                 'symbol': symbol,
-                'type': contract_type
+                'type': contract_type,
+                'k': K.ks[period][(exchange, symbol, contract_type)].k.to_dict(orient='split')
             }
+
 
 class _K(Observable):
 
@@ -100,6 +102,7 @@ class _K(Observable):
                 'symbol': self.symbol, 'type': self.period, 'contract_type': self.contract_type, 'size': 0,
                 'since': self.last_period.name if self.last_period is not None else 0
             }), columns=K.COLUMNS)
+            df.drop([K.BTC_VOLUME], axis=1, inplace=True)
             df.set_index(K.TIMESTAMP, inplace=True)
             self.append_data(df)
         except (RequestTimeout, ExchangeError) as e:
