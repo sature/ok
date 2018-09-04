@@ -4,8 +4,6 @@ import os
 from utils import *
 from strategy import Chase
 from sign import DualThrust
-from flask import Flask
-from flask_restful import Api
 
 
 App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/global.conf')
@@ -14,12 +12,6 @@ chase = Chase()
 s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
 s.set_parameters(n=10, k1=0.5, k2=0.5)
 chase.add_signal(s)
-
-app = Flask(__name__)
-api = Api(app)
-
-K.register_rest_api(api)
-app.run(port='8080')
 
 # List all the markets of the exchange
 # symbols = []
