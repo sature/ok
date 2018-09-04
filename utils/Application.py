@@ -7,6 +7,7 @@ from flask_restful import Api
 import threading
 from K import K
 
+
 logger = logging.getLogger('rich')
 
 
@@ -55,4 +56,4 @@ class Application:
 
     @staticmethod
     def _start_web_app():
-        Application.webapp.run(port=Application.config.get('WEB', 'PORT'))
+        Application.webapp.run(host='0.0.0.0', port=Application.config.get('WEB', 'PORT'))
