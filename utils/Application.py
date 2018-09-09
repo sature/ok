@@ -1,10 +1,10 @@
+import os
 import ccxt
 import logging
 from configparser import ConfigParser
 from WechatHandler import WechatHandler
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_restful import Api
-import threading
 from K import K
 
 
@@ -37,7 +37,20 @@ class Application:
         api = Api(Application.webapp)
         K.register_rest_api(api)
 
-        threading.Thread(target=Application._start_web_app).start()
+        @Application.webapp.route('/', methods=['GET'])
+        def get_homepage():
+            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/' + 'index.html')
+            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/', 'index.html')
+
+        @Application.webapp.route('/<path>/<filename>', methods=['GET'])
+        def get_js_css_fonts(path, filename):
+            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/' + path + '/' + filename)
+            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/' + path, filename)
+
+        @Application.webapp.route('/asset/<path>/<filename>', methods=['GET'])
+        def get_asset(path, filename):
+            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/asset/' + path + '/' + filename)
+            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/asset/' + path, filename)
 
     @staticmethod
     def get_exchange(contract_type='quarter'):
@@ -55,5 +68,5 @@ class Application:
         return Application.exchange[contract_type]
 
     @staticmethod
-    def _start_web_app():
+    def start():
         Application.webapp.run(host='0.0.0.0', port=Application.config.get('WEB', 'PORT'))

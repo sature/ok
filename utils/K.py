@@ -51,8 +51,7 @@ class K(Resource):
         exchange = request.args.get('exchange')
         symbol = request.args.get('symbol')
         contract_type = request.args.get('type')
-        logger.info('[GET] /k period=%s, exchange=%s, symbol=%s, type=%s'
-                    % (period, exchange, symbol, contract_type))
+        logger.info('[GET] /k period=%s, exchange=%s, symbol=%s, type=%s' % (period, exchange, symbol, contract_type))
 
         if (period, exchange, symbol, contract_type) == (None, None, None, None):
             return {'running': [{
