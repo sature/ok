@@ -4,9 +4,6 @@ import logging
 from configparser import ConfigParser
 from WechatHandler import WechatHandler
 from flask import Flask, send_from_directory
-from flask_restful import Api
-from K import K
-
 
 logger = logging.getLogger('rich')
 
@@ -15,7 +12,7 @@ class Application:
 
     config = None
     exchange = dict()
-    webapp = None
+    webapp = Flask('Rich')
 
     @staticmethod
     def read_config(f):
@@ -32,25 +29,32 @@ class Application:
             logger.addHandler(wechat)
             logger.warning(u'微信登录成功!')
 
-        # web
-        Application.webapp = Flask(__name__)
-        api = Api(Application.webapp)
-        K.register_rest_api(api)
+        web_dir = os.path.split(os.path.realpath(__file__))[0] + '/../web/'
 
         @Application.webapp.route('/', methods=['GET'])
         def get_homepage():
-            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/' + 'index.html')
-            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/', 'index.html')
+            logger.info('get %s' % web_dir + 'index.html')
+            return send_from_directory(web_dir, 'index.html')
 
-        @Application.webapp.route('/<path>/<filename>', methods=['GET'])
-        def get_js_css_fonts(path, filename):
-            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/' + path + '/' + filename)
-            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/' + path, filename)
+        @Application.webapp.route('/js/<filename>', methods=['GET'])
+        def get_js(filename):
+            logger.info('get %s' % web_dir + 'js/' + filename)
+            return send_from_directory(web_dir + 'js', filename)
+
+        @Application.webapp.route('/css/<filename>', methods=['GET'])
+        def get_css(filename):
+            logger.info('get %s' % web_dir + 'css/' + filename)
+            return send_from_directory(web_dir + 'css', filename)
+
+        @Application.webapp.route('/fonts/<filename>', methods=['GET'])
+        def get_fonts(filename):
+            logger.info('get %s' % web_dir + 'fonts/' + filename)
+            return send_from_directory(web_dir + 'fonts', filename)
 
         @Application.webapp.route('/asset/<path>/<filename>', methods=['GET'])
         def get_asset(path, filename):
-            logger.info('get %s' % os.path.split(os.path.realpath(__file__))[0] + '/../web/asset/' + path + '/' + filename)
-            return send_from_directory(os.path.split(os.path.realpath(__file__))[0] + '/../web/asset/' + path, filename)
+            logger.info('get %s' % web_dir + 'asset/' + path + '/' + filename)
+            return send_from_directory(web_dir + 'asset/' + path, filename)
 
     @staticmethod
     def get_exchange(contract_type='quarter'):

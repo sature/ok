@@ -92,3 +92,8 @@ class Signal(Observable):
 
     def update_boundary(self):
         pass
+
+    def get_dict(self):
+        return dict({
+            'name': self.name
+        })

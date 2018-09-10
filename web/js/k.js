@@ -71,7 +71,7 @@ function calculateMA(dayCount, data) {
     return result;
 }
 
-$.get('http://54.153.71.170:8081/k?period=1min&exchange=OKEX&symbol=eos_usd&type=quarter', function (rawData) {
+$.get('/k?period=1min&exchange=OKEX&symbol=eos_usd&type=quarter', function (rawData) {
 
     var data = splitData2(rawData.k);
 

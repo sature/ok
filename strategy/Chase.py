@@ -9,6 +9,7 @@ import logging
 
 logger = logging.getLogger('rich')
 
+
 class Chase(S):
 
     actions = dict({

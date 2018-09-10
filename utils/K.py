@@ -4,8 +4,9 @@ import pandas as pd
 from datetime import datetime as dt
 from ccxt.base.errors import ExchangeError, RequestTimeout
 from flask_restful import Resource
-from flask import request
+from flask import request, jsonify
 from Observable import Observable
+from Application import Application as App
 
 logger = logging.getLogger('rich')
 
@@ -46,7 +47,9 @@ class K(Resource):
     def register_rest_api(api):
         api.add_resource(K, '/k')
 
-    def get(self):
+    @staticmethod
+    @App.webapp.route('/k', methods=['GET'])
+    def get():
         period = request.args.get('period')
         exchange = request.args.get('exchange')
         symbol = request.args.get('symbol')
@@ -54,19 +57,21 @@ class K(Resource):
         logger.info('[GET] /k period=%s, exchange=%s, symbol=%s, type=%s' % (period, exchange, symbol, contract_type))
 
         if (period, exchange, symbol, contract_type) == (None, None, None, None):
-            return {'running': [{
-                'period': p,
-                'k': [{'exchange': exchange, 'symbol': symbol, 'type': contract_type}
-                      for (exchange, symbol, contract_type) in K.ks[p].keys()]
-            } for p in K.ks.keys()]}
+            return jsonify({
+                'running': [{
+                    'period': p,
+                    'k': [{'exchange': exchange, 'symbol': symbol, 'type': contract_type}
+                          for (exchange, symbol, contract_type) in K.ks[p].keys()]
+                } for p in K.ks.keys()]
+            })
         else:
-            return {
+            return jsonify({
                 'period': period,
                 'exchange': exchange,
                 'symbol': symbol,
                 'type': contract_type,
                 'k': K.ks[period][(exchange, symbol, contract_type)].k.to_dict(orient='split')
-            }
+            })
 
 
 class _K(Observable):
