@@ -5,6 +5,10 @@ import logging
 
 class Signal(Observable):
 
+    class Type:
+        BAND = 'Band'
+        MA = 'Moving Average'
+
     class Boundary:
         UPPER = 'upper'
         MIDDLE = 'middle'
@@ -23,6 +27,7 @@ class Signal(Observable):
         self.name = 'Signal[-]'
         self.b = dict({Signal.Boundary.UPPER: None, Signal.Boundary.MIDDLE: None, Signal.Boundary.LOWER: None})
         self.s = dict({Signal.BREAK: False, Signal.LEAK: False, Signal.BREAK_RATIO: 0, Signal.LEAK_RATIO: 0})
+        self.p = dict({})
 
     def set_name(self, n):
         self.name = 'Signal[%s]' % n
@@ -95,5 +100,12 @@ class Signal(Observable):
 
     def get_dict(self):
         return dict({
-            'name': self.name
+            'name': self.name,
+            'parameters': self.p,
+            'feeds': {
+                'exchange': self.exchange.name,
+                'symbol': self.symbol,
+                'period': self.period,
+                'type': self.exchange.options['defaultContractType']
+            }
         })

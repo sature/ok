@@ -63,7 +63,7 @@ class Strategy:
     def rest_get_strategies():
         logger.info('web getting strategies')
         return jsonify({
-            'strategies': [{
+            'strategy': [{
                 'id': strategy.get_id(),
                 'name': strategy.name,
                 'signals': [signal.get_dict() for signal in strategy.get_signals()]
@@ -75,7 +75,6 @@ class Strategy:
     def rest_get_strategy(strategy_id):
         logger.info('[REST] Get strategy id=%d' % int(strategy_id))
         s = Strategy.get_strategy(int(strategy_id))
-        logger.info(str(s))
         return jsonify({}) if s is None else jsonify({
             'id': s.id,
             'name': s.name,
