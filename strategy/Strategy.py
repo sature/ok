@@ -11,7 +11,9 @@ class Strategy:
     id = 0
     strategies = []
 
-    def __init__(self):
+    def __init__(self, k, amount = 1):
+        self.k = k
+        self.amount = amount
         self.signals = []
         self.name = 'Strategy[-]'
         self.contract = None
@@ -21,19 +23,16 @@ class Strategy:
 
     def add_signal(self, s):
 
-        # if len[self.signals] > 0:
-        #     logger.warning("Doesn't support multiple signals in a strategy now, skipped the second sign")
-        #     return
-
         self.signals.append(s)
-        logger.info('%s: Added sign %s', self.name, s.name)
+        logger.info('%s: Added signal %s', self.name, s.name)
         s.subscribe(self.check)
-        s.start()
+        s.start(self.k)
 
     def remove_signal(self, s):
+        s.stop()
         s.unsubscribe(self.check)
         self.signals.remove(s)
-        logger.info('%s: Removed sign %s', self.name, s.name)
+        logger.info('%s: Removed signal %s', self.name, s.name)
 
     def get_signals(self):
         return self.signals
@@ -42,7 +41,7 @@ class Strategy:
         logger.error('%s is not handling sign %s' % (self.name, event.source.name))
 
     def set_name(self, name):
-        self.name = 'Strategy[%s-%d]' % (name, self.id)
+        self.name = name
 
     def log(self, msg):
         return '%s: %s' % (self.name, msg)
@@ -50,33 +49,41 @@ class Strategy:
     def get_id(self):
         return self.id
 
+    # @staticmethod
+    # def get_strategy(strategy_id):
+    #     for s in Strategy.strategies:
+    #         if s.id == strategy_id:
+    #             return s
+    #     else:
+    #         return None
+    #
     @staticmethod
-    def get_strategy(strategy_id):
+    def get_strategy_dict(sid):
         for s in Strategy.strategies:
-            if s.id == strategy_id:
-                return s
+            if s.id == sid:
+                return dict({
+                    'id': sid,
+                    'name': s.name,
+                    'amount': s.amount,
+                    'k': {
+                        'exchange': s.k.exchange.name,
+                        'symbol': s.k.symbol,
+                        'period': s.k.period,
+                        'type': s.k.exchange.options['defaultContractType']
+                    },
+                    'signals': [signal.get_dict() for signal in s.get_signals()]
+                })
         else:
-            return None
+            return dict({})
 
     @staticmethod
     @App.webapp.route('/strategy', methods=['GET'])
     def rest_get_strategies():
-        logger.info('web getting strategies')
-        return jsonify({
-            'strategy': [{
-                'id': strategy.get_id(),
-                'name': strategy.name,
-                'signals': [signal.get_dict() for signal in strategy.get_signals()]
-            } for strategy in Strategy.strategies]
-        })
+        logger.info('[REST] Get all %d/%d strategies.' % (len(Strategy.strategies), len(Strategy.strategies)))
+        return jsonify([Strategy.get_strategy_dict(s.id) for s in Strategy.strategies])
 
     @staticmethod
-    @App.webapp.route('/strategy/<strategy_id>', methods=['GET'])
-    def rest_get_strategy(strategy_id):
-        logger.info('[REST] Get strategy id=%d' % int(strategy_id))
-        s = Strategy.get_strategy(int(strategy_id))
-        return jsonify({}) if s is None else jsonify({
-            'id': s.id,
-            'name': s.name,
-            'signals': [signal.get_dict() for signal in s.get_signals()]
-        })
+    @App.webapp.route('/strategy/<sid>', methods=['GET'])
+    def rest_get_strategy(sid):
+        logger.info('[REST] Get strategy id=%d' % int(sid))
+        return jsonify(Strategy.get_strategy_dict(int(sid)))

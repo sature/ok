@@ -28,12 +28,12 @@ class Chase(S):
     buy when price breaks upper boundary and sell when price leaks lower boundary
     '''
 
-    def __init__(self, amount=1):
-        S.__init__(self)
+    def __init__(self, k, amount=1):
+        S.__init__(self, k, amount)
         self.status = 'clean_hands' # clean_hands/holding_buy/holding_sell
         self.amount = amount
         self.holding = 0
-        self.set_name('Chase(%d)' % self.amount)
+        self.set_name('Chase')
         self.contract = None
         logger.info('Create Strategy %s' % self.name)
 
@@ -44,9 +44,7 @@ class Chase(S):
         for act in Chase.actions[(signal.is_break(), signal.is_leak())][self.status]:
             logger.info('Strategy(Chase) is doing %d' % act)
             if act in [Contract.OrderType.BUY, Contract.OrderType.SELL]:
-                self.contract = Contract(signal.exchange,
-                                         signal.symbol,
-                                         signal.exchange.options['defaultContractType'],
+                self.contract = Contract(self.k.exchange, self.k.symbol, self.k.exchange.options['defaultContractType'],
                                          dry_run=True)
                 self.contract.subscribe(self.contract_result)
                 self.contract.order(act, price=None, amount=self.amount)

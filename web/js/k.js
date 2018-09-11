@@ -247,19 +247,26 @@ myChart.setOption(option = {
     series: []
 }, true);
 
-$.get('/strategy/0', function(data) {
-    f = data.signals[0].feeds
-    params = ''.concat('exchange=' + f['exchange'])
-               .concat('&symbol=' + f['symbol'].replace('/','_').toLowerCase())
-               .concat('&type=' + f['type'])
-               .concat('&period=' + f['period'])
+$.get('/strategy/0', function(strategy) {
+
+    k = strategy.k
+    params = [
+        'exchange=' + k['exchange'],
+        'symbol='   + k['symbol'].replace('/','_').toLowerCase(),
+        'type='     + k['type'],
+        'period='   + k['period']
+    ].join('&')
 
     $.get('/k?' + params, function (rawData) {
         var data = splitData(rawData.k);
-        name = f['symbol'].replace('/','_').toLowerCase()
-               + ' ' + f['type']
-               + ' ' + f['period']
-               + ' K'
+        name = [
+            k['exchange'],
+            k['symbol'].replace('/','_').toLowerCase(),
+            k['type'],
+            k['period'],
+            'K'
+        ].join(' ')
+
         addK(myChart, name, data.categoryData, data.values, data.volumes)
 //        addSeries(myChart, 'MA7', calculateMA(7, data))
 //        addSeries(myChart, 'MA30', calculateMA(30, data))

@@ -17,11 +17,13 @@ class DualThrust(Signal):
     K1 = 'K1'
     K2 = 'K2'
 
-    def __init__(self, exchange, symbol, period='1h'):
-        Signal.__init__(self, exchange, symbol, period)
-        self.set_name('DT(%s,%s,%s,%s)' % (exchange.name, symbol, period, exchange.options['defaultContractType']))
-        self.p = dict({DualThrust.N: 1, DualThrust.K1: 1, DualThrust.K2: 1})
+    def __init__(self, n=10, k1=0.5, k2=0.5):
+        Signal.__init__(self)
+        self.set_type(Signal.Type.BAND)
+        self.set_name('Dual Thrust')
+        self.p = dict({DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2})
         self.d = None
+        self.type = Signal.Type.BAND
         logger.info('Created signal %s' % self.name)
 
     def track(self, event):
