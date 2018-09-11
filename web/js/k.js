@@ -21,18 +21,21 @@ function FormatDateTime(time) {
 }
 
 function splitData(rawData) {
-	var categoryData = []
+	var timestamp = []
+	var time_str = []
 	var values = []
 	var volumes = []
 	for (var i = 0; i < rawData.data.length; i++) {
-		categoryData.push(FormatDateTime(rawData.index[i]))
+	    timestamp.push(rawData.index[i])
+	    time_str.push(FormatDateTime(rawData.index[i]))
 		volumes.push([i, rawData.data[i].splice(4, 1)[0], rawData.data[i][0] > rawData.data[i][3] ? 1 : -1])
 					//            open                close               low                high
 		values.push([rawData.data[i][0], rawData.data[i][3], rawData.data[i][2], rawData.data[i][1]])
 	}
 	
     return {
-        categoryData: categoryData,
+        timestamp: timestamp,
+        time_str: time_str,
         values: values,
         volumes: volumes
     };
@@ -52,6 +55,28 @@ function calculateMA(dayCount, data) {
         result.push(+(sum / dayCount).toFixed(3));
     }
     return result;
+}
+
+function calculateBand(ticks, data) {
+    var _ticks = ticks.slice(), upper = [], middle = [], lower = [];
+    while (_ticks.length > 0) {
+        t = _ticks.shift()
+        if (data.length == 0) break
+        else if (t < data[0]['timestamp']) {
+            upper.push('-');
+            middle.push('-')
+            lower.push('-');
+        } else if (t == data[0]['timestamp']) {
+            d = data.shift()
+            upper.push(d['upper'])
+            middle.push(d['middle'])
+            lower.push(d['lower'])
+        } else {
+            console.log('missing tick=' + data[0]['timestamp'])
+            data.shift()
+        }
+    }
+    return {upper: upper, lower: lower}
 }
 
 function addK(chart, name, categoryData, data, volume) {
@@ -259,6 +284,7 @@ $.get('/strategy/0', function(strategy) {
 
     $.get('/k?' + params, function (rawData) {
         var data = splitData(rawData.k);
+        ticks = data.timestamp
         name = [
             k['exchange'],
             k['symbol'].replace('/','_').toLowerCase(),
@@ -266,9 +292,14 @@ $.get('/strategy/0', function(strategy) {
             k['period'],
             'K'
         ].join(' ')
+        addK(myChart, name, data.time_str, data.values, data.volumes)
 
-        addK(myChart, name, data.categoryData, data.values, data.volumes)
-//        addSeries(myChart, 'MA7', calculateMA(7, data))
-//        addSeries(myChart, 'MA30', calculateMA(30, data))
+        for (var i = 0; i < strategy.signals.length; i++) {
+            sign = strategy.signals[i]
+            prefix = '[' + sign.id + ']' + sign.name + '-'
+            band = calculateBand(ticks, sign.data)
+            addSeries(myChart, prefix+'upper', band.upper)
+            addSeries(myChart, prefix+'lower', band.lower)
+        }
     });
 })
