@@ -1,12 +1,12 @@
 
 if __name__ == '__main__':
-    import os,sys
+    import os
+    import sys
     sys.path.append(os.path.split(os.path.realpath(__file__))[0] + '/..')
 
 import logging
 from utils import K
 from Signal import Signal
-
 
 logger = logging.getLogger('rich')
 
@@ -21,7 +21,7 @@ class DualThrust(Signal):
         Signal.__init__(self)
         self.set_type(Signal.Type.BAND)
         self.set_name('Dual Thrust')
-        self.p = dict({DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2})
+        self.params = dict({DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2})
         self.d = None
         self.type = Signal.Type.BAND
         logger.info('Created signal %s' % self.name)
@@ -41,8 +41,13 @@ class DualThrust(Signal):
         self.set_signal(o.current()[K.CLOSE])
 
     def update_band(self, k):
+
+        n = self.params[DualThrust.N]
+        k1 = self.params[DualThrust.K1]
+        k2 = self.params[DualThrust.K2]
+
         length = len(k)
-        if length < self.p[DualThrust.N] + 1:
+        if length < n + 1:
             # length of k lines are not enough, reset to update boundary when next k coming
             logger.warning('k length = %d, which is not enough for boundary calculation.' % length)
             self.set_band(None)
@@ -50,17 +55,17 @@ class DualThrust(Signal):
 
         ts = int(k.index[-1])
         opening = k.iloc[-1][K.OPEN]
-        df = k.iloc[-self.p[DualThrust.N]-1:-1]
+        df = k.iloc[-(n+1):-1]
         deviation = max(df[K.HIGH].max() - df[K.CLOSE].min(), df[K.CLOSE].max() - df[K.LOW].min())
         self.set_band({
-            Signal.Boundary.UPPER: opening + self.p[DualThrust.K1] * deviation,
+            Signal.Boundary.UPPER: opening + k1 * deviation,
             Signal.Boundary.MIDDLE: opening,
-            Signal.Boundary.LOWER: opening - self.p[DualThrust.K2] * deviation
+            Signal.Boundary.LOWER: opening - k2 * deviation
         }, timestamp=ts)
 
     def update_params(self, n, k1=1, k2=1):
-        self.p = {DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2}
-        logger.info('%s: set parameters as %s' %(self.name, self.p))
+        self.params = {DualThrust.N: n, DualThrust.K1: k1, DualThrust.K2: k2}
+        logger.info('%s: set parameters as %s' % (self.name, self.params))
 
 
 if __name__ == "__main__":
