@@ -207,6 +207,7 @@ function listSignals(signals) {
                                   + '<td>' + v.name + '</td>'
                                   + '<td>' + v.type + '</td>'
                                   + '<td>' + JSON.stringify(v.parameters) + '</td>'
+                                  + '<td>' + v.intensity + '</td>'
                                   + '</tr>');
     })
 }

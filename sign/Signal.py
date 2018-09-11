@@ -120,7 +120,8 @@ class Signal(Observable):
             'type': self.type,
             'parameters': self.params,
             'keywords': list(self.band.keys()),
-            'data': self.bands
+            'data': self.bands,
+            'intensity': 0
         })
 
     @staticmethod
