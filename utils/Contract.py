@@ -1,5 +1,4 @@
 import threading
-import ccxt
 import time
 import logging
 from Observable import Observable
@@ -33,7 +32,8 @@ class Contract(Observable):
         CLOSING = 'closing'
         CLOSED = 'closed'
 
-    FEE_RATE = 0.0005
+    FEE_RATE = 0.0002
+    id = 0
 
     def __init__(self, exchange, symbol, contract_type, dry_run=True):
         Observable.__init__(self)
@@ -43,6 +43,9 @@ class Contract(Observable):
         self.exchange = exchange
         self.symbol = symbol.replace('_', '/').upper()
         self.contract_type = contract_type
+
+        self.id = Contract.id
+        Contract.id += 1
 
         self.status = Contract.Status.NONE
         self.order_type = None
@@ -340,6 +343,25 @@ class Contract(Observable):
             raise ContractException('Error during fetching ticker')
 
         return ticker['ask'], ticker['bid'], ticker['timestamp']
+
+    def get_dict(self):
+        return dict({
+            'id': self.id,
+            'state': self.status,
+            'dry_run': self.dry_run,
+            'order_type': self.order_type,
+            'price': self.price,
+            'cost': self.cost,
+            'margin': self.margin,
+            'margin_rate': self.margin_rate,
+            'fee': self.fee,
+            'guarantee': self.guarantee,
+            'amount': self.amount,
+            'filled': self.filled,
+            'remaining': self.remaining,
+            'lever_rate': self.lever_rate,
+            'timestamp': self.timestamp
+        })
 
 
 if __name__ == "__main__":

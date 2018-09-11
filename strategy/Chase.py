@@ -34,7 +34,7 @@ class Chase(S):
         self.amount = amount
         self.holding = 0
         self.set_name('Chase')
-        self.contract = None
+        # self.contract = None
         logger.info('Create Strategy %s' % self.name)
 
     def check(self, event):
@@ -44,14 +44,19 @@ class Chase(S):
         for act in Chase.actions[(signal.is_break(), signal.is_leak())][self.status]:
             logger.info('Strategy(Chase) is doing %d' % act)
             if act in [Contract.OrderType.BUY, Contract.OrderType.SELL]:
-                self.contract = Contract(self.k.exchange, self.k.symbol, self.k.exchange.options['defaultContractType'],
-                                         dry_run=True)
-                self.contract.subscribe(self.contract_result)
-                self.contract.order(act, price=None, amount=self.amount)
+                self.issue_new_transaction(dry_run=True)
+                # self.contract = Contract(self.k.exchange, self.k.symbol, self.k.exchange.options['defaultContractType'],
+                #                          dry_run=True)
+                self.transaction().subscribe(self.contract_result)
+                # self.contract.subscribe(self.contract_result)
+                self.transaction().order(act, price=None, amount=self.amount)
+                # self.contract.order(act, price=None, amount=self.amount)
                 self.status = 'holding_buy' if act == Contract.OrderType.BUY else 'holding_sell'
             elif act in [Contract.OrderType.CLOSE_BUY, Contract.OrderType.CLOSE_SELL]:
-                self.contract.close(price=None)
-                self.contract = None
+                self.transaction().close(price=None)
+                self.close_transaction()
+                # self.contract.close(price=None)
+                # self.contract = None
                 self.status = 'clean_hands'
 
     def contract_result(self, e):

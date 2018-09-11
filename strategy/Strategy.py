@@ -1,5 +1,6 @@
 import logging
 from utils import App
+from utils import Contract
 from flask import jsonify
 
 logger = logging.getLogger('rich')
@@ -11,12 +12,13 @@ class Strategy:
     id = 0
     strategies = []
 
-    def __init__(self, k, amount = 1):
+    def __init__(self, k, amount=1):
         self.k = k
         self.amount = amount
         self.signals = []
         self.name = 'Strategy[-]'
-        self.contract = None
+        self._transaction = None
+        self.transactions = []
         self.id = Strategy.id
         Strategy.id += 1
         Strategy.strategies.append(self)
@@ -38,23 +40,28 @@ class Strategy:
         return self.signals
 
     def check(self, event):
-        logger.error('%s is not handling sign %s' % (self.name, event.source.name))
+        logger.error('%s is not handling signal %s' % (self.name, event.source.name))
 
     def set_name(self, name):
         self.name = name
 
-    def log(self, msg):
-        return '%s: %s' % (self.name, msg)
+    def transaction(self):
+        return self._transaction
 
-    def get_id(self):
-        return self.id
+    def issue_new_transaction(self, dry_run=True):
+        self._transaction = Contract(self.k.exchange, self.k.symbol, self.k.exchange.options['defaultContractType'],
+                                     dry_run=dry_run)
+        self.transactions.append(self._transaction)
+
+    def close_transaction(self):
+        self._transaction = None
 
     @staticmethod
     def get_strategy_dict(sid):
         for s in Strategy.strategies:
             if s.id == sid:
                 return dict({
-                    'id': sid,
+                    'id': s.id,
                     'name': s.name,
                     'amount': s.amount,
                     'k': {
@@ -63,7 +70,8 @@ class Strategy:
                         'period': s.k.period,
                         'type': s.k.exchange.options['defaultContractType']
                     },
-                    'signals': [signal.get_dict() for signal in s.get_signals()]
+                    'signals': [signal.get_dict() for signal in s.get_signals()],
+                    'transactions': [t.get_dict() for t in s.transactions]
                 })
         else:
             return dict({})

@@ -198,16 +198,24 @@ function addSeries(chart, name, data) {
 }
 
 function listSignals(signals) {
-    console.log(signals)
     $.each(signals, function(i, v) {
-        console.log(v)
-        console.log($("#signal-table"))
         $("#signal-table").append('<tr class="table-success">'
                                   + '<td>' + v.id + '</td>'
                                   + '<td>' + v.name + '</td>'
                                   + '<td>' + v.type + '</td>'
                                   + '<td>' + JSON.stringify(v.parameters) + '</td>'
                                   + '<td>' + v.intensity + '</td>'
+                                  + '</tr>');
+    })
+}
+
+function listTransactions(transactions) {
+    $.each(transactions, function(i, v) {
+        $("#transaction-table").append('<tr class="table-success">'
+                                  + '<td>' + v.id + '</td>'
+                                  + '<td>' + v.state + '</td>'
+                                  + '<td>' + JSON.stringify(v) + '</td>'
+                                  + '<td>' + '' + '</td>'
                                   + '</tr>');
     })
 }
@@ -309,14 +317,14 @@ $.get('/strategy/0', function(strategy) {
         ].join(' ')
         addK(myChart, name, data.time_str, data.values, data.volumes)
 
-        for (var i = 0; i < strategy.signals.length; i++) {
-            sign = strategy.signals[i]
+        $.each(strategy.signals, function(i, sign) {
             prefix = '[' + sign.id + ']' + sign.name + '-'
             band = calculateBand(ticks, sign.data)
             addSeries(myChart, prefix+'upper', band.upper)
             addSeries(myChart, prefix+'lower', band.lower)
-        }
+        })
 
         listSignals(strategy.signals)
+        listTransactions(strategy.transactions)
     });
 })
