@@ -30,7 +30,7 @@ class Signal(Observable):
         self.band = None
         self.bands = []
         self.s = dict({Signal.BREAK: False, Signal.LEAK: False})
-        self.p = dict({})
+        self.params = dict({})
         self.boundaries = []
         self.id = Signal.id
         Signal.id += 1
@@ -118,7 +118,7 @@ class Signal(Observable):
             'id': self.id,
             'name': self.name,
             'type': self.type,
-            'parameters': self.p,
+            'parameters': self.params,
             'keywords': list(self.band.keys()),
             'data': self.bands
         })

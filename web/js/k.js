@@ -197,6 +197,20 @@ function addSeries(chart, name, data) {
     chart.setOption(option = o, true);
 }
 
+function listSignals(signals) {
+    console.log(signals)
+    $.each(signals, function(i, v) {
+        console.log(v)
+        console.log($("#signal-table"))
+        $("#signal-table").append('<tr class="table-success">'
+                                  + '<td>' + v.id + '</td>'
+                                  + '<td>' + v.name + '</td>'
+                                  + '<td>' + v.type + '</td>'
+                                  + '<td>' + JSON.stringify(v.parameters) + '</td>'
+                                  + '</tr>');
+    })
+}
+
 myChart = echarts.init(document.getElementById('echarts_main'));
 myChart.setOption(option = {
     backgroundColor: '#fff',
@@ -301,5 +315,7 @@ $.get('/strategy/0', function(strategy) {
             addSeries(myChart, prefix+'upper', band.upper)
             addSeries(myChart, prefix+'lower', band.lower)
         }
+
+        listSignals(strategy.signals)
     });
 })
