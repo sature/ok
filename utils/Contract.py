@@ -41,7 +41,7 @@ class Contract(Observable):
         self.dry_run = dry_run
 
         self.exchange = exchange
-        self.symbol = symbol
+        self.symbol = symbol.replace('_', '/').upper()
         self.contract_type = contract_type
 
         self.status = Contract.Status.NONE
