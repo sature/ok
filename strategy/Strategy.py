@@ -49,14 +49,6 @@ class Strategy:
     def get_id(self):
         return self.id
 
-    # @staticmethod
-    # def get_strategy(strategy_id):
-    #     for s in Strategy.strategies:
-    #         if s.id == strategy_id:
-    #             return s
-    #     else:
-    #         return None
-    #
     @staticmethod
     def get_strategy_dict(sid):
         for s in Strategy.strategies:

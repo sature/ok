@@ -77,13 +77,10 @@ class Chase(S):
 
 if __name__ == "__main__":
 
-    from utils import App
+    from utils import *
     from sign import DualThrust
-    from utils import App
 
     App.read_config(os.path.split(os.path.realpath(__file__))[0] + '/../global.conf')
 
-    chase = Chase()
-    s = DualThrust(App.get_exchange('quarter'), "EOS/USD", period='1min')
-    s.set_parameters(n=10, k1=0.5, k2=0.5)
-    chase.add_signal(s)
+    chase = Chase(K.k(App.get_exchange('quarter'), "EOS/USD", period='1min'))
+    chase.add_signal(DualThrust(n=10, k1=0.5, k2=0.5))

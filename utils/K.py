@@ -76,7 +76,7 @@ class K(Resource):
 
 class _K(Observable):
 
-    MAX_LENGTH = 1000
+    MAX_LENGTH = 1440
     FAST = 2
     SLOW = 5
 
@@ -125,7 +125,7 @@ class _K(Observable):
         self.k = self.k.tail(_K.MAX_LENGTH)
         new_k = True if (self.last_period is None) or (self.timestamp() != last_period.name) else False
         self.last_period = last_period
-        logger.info('%s: Firing new K, timestamp = %d' % (self.name, self.timestamp()))
+        logger.debug('%s: Firing new K, timestamp = %d' % (self.name, self.timestamp()))
         self.fire(new_k=new_k)
 
     def data(self):

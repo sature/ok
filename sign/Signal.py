@@ -3,6 +3,8 @@ from utils import App
 from flask import jsonify
 import logging
 
+logger = logging.getLogger('rich')
+
 
 class Signal(Observable):
 
@@ -17,8 +19,6 @@ class Signal(Observable):
 
     BREAK = 'break'
     LEAK = 'leak'
-    BREAK_RATIO = 'break_ratio'
-    LEAK_RATIO = 'leak_ratio'
 
     id = 0
     signals = []
@@ -27,8 +27,9 @@ class Signal(Observable):
         Observable.__init__(self)
         self.k = None
         self.name = '-'
-        self.b = dict({Signal.Boundary.UPPER: None, Signal.Boundary.MIDDLE: None, Signal.Boundary.LOWER: None})
-        self.s = dict({Signal.BREAK: False, Signal.LEAK: False, Signal.BREAK_RATIO: 0, Signal.LEAK_RATIO: 0})
+        self.band = None
+        self.bands = []
+        self.s = dict({Signal.BREAK: False, Signal.LEAK: False})
         self.p = dict({})
         self.boundaries = []
         self.id = Signal.id
@@ -53,64 +54,57 @@ class Signal(Observable):
     def set_name(self, name):
         self.name = name
 
-    def set_break(self, b, ratio=0):
+    def set_break(self, b):
         if b is True and self.s[Signal.LEAK] is True:
             self.s[Signal.LEAK] = False
-        self.s[Signal.BREAK_RATIO] = ratio
         if self.s[Signal.BREAK] != b:
             self.s[Signal.BREAK] = b
+            logger.info('%s: signal = {break=%r, leak=%r}' % (self.name, self.is_break(), self.is_leak()))
             self.fire()
 
     def is_break(self):
         return self.s[Signal.BREAK]
 
-    def set_leak(self, l, ratio=0):
+    def set_leak(self, l):
         if l is True and self.s[Signal.BREAK] is True:
             self.s[Signal.BREAK] = False
-        self.s[Signal.LEAK_RATIO] = ratio
         if self.s[Signal.LEAK] != l:
             self.s[Signal.LEAK] = l
+            logger.info('%s: signal = {break=%r, leak=%r}' % (self.name, self.is_break(), self.is_leak()))
             self.fire()
 
     def is_leak(self):
         return self.s[Signal.LEAK]
 
-    def set_ratio(self, current):
-        self.s[Signal.BREAK_RATIO] = (current - self.get_middle()) / (self.get_upper() - self.get_middle())
-        self.s[Signal.LEAK_RATIO] = (current - self.get_middle()) / (self.get_lower() - self.get_middle())
+    def set_signal(self, current):
+        if self.type == Signal.Type.BAND:
+            self.set_break(current > self.band[Signal.Boundary.UPPER])
+            self.set_leak(current < self.band[Signal.Boundary.LOWER])
+        else:
+            logger.warning('%s: set_signal() with unknown signal type %s' % (self.name, self.type))
 
-    def get_break_ratio(self):
-        return self.s[Signal.BREAK_RATIO]
+    def set_band(self, b, timestamp=0):
+        if self.type == Signal.Type.BAND:
+            self.band = b
+            logger.info('[%s]%s: updated band to %d: [%.3f,%.3f,%.3f]'
+                        % (self.id, self.name, timestamp,
+                           self.band[Signal.Boundary.LOWER],
+                           self.band[Signal.Boundary.MIDDLE],
+                           self.band[Signal.Boundary.UPPER])
+                        )
+            if (self.band is not None) and (timestamp != 0):
+                self._add_bands(self.band, timestamp)
 
-    def get_leak_ratio(self):
-        return self.s[Signal.LEAK_RATIO]
+    def get_band(self):
+        return self.band
 
-    def set_upper(self, b):
-        self.b[Signal.Boundary.UPPER] = b
-
-    def get_upper(self):
-        return self.b[Signal.Boundary.UPPER]
-
-    def set_middle(self, b):
-        self.b[Signal.Boundary.MIDDLE] = b
-
-    def get_middle(self):
-        return self.b[Signal.Boundary.MIDDLE]
-
-    def set_lower(self, b):
-        self.b[Signal.Boundary.LOWER] = b
-
-    def get_lower(self):
-        return self.b[Signal.Boundary.LOWER]
-
-    def set_boundary(self, timestamp, b):
-        self.b[Signal.Boundary.UPPER] = b[Signal.Boundary.UPPER]
-        self.b[Signal.Boundary.MIDDLE] = b[Signal.Boundary.MIDDLE]
-        self.b[Signal.Boundary.LOWER] = b[Signal.Boundary.LOWER]
-
-    def set_ratio(self, current):
-        self.s[Signal.BREAK_RATIO] = (current - self.get_middle()) / (self.get_upper() - self.get_middle())
-        self.s[Signal.LEAK_RATIO] = (current - self.get_middle()) / (self.get_lower() - self.get_middle())
+    def _add_bands(self, band, timestamp):
+        band['timestamp'] = timestamp
+        if len(self.bands) > 0 and self.bands[-1]['timestamp'] == timestamp:
+            self.bands.pop()
+        self.bands.append(band)
+        if len(self.bands) > self.k.MAX_LENGTH:
+            del self.bands[0]
 
     def track(self, e):
         logging.warning('%s: track() shall be override.' % self.name)
@@ -119,17 +113,14 @@ class Signal(Observable):
     def update_boundary(self):
         pass
 
-    def add_boundary(self, timestamp, signal):
-        if self.boundaries[-1]['timestamp'] == timestamp:
-            self.boundaries.pop()
-        self.boundaries.append({'timestamp': timestamp, 'signal': signal})
-
     def get_dict(self):
         return dict({
             'id': self.id,
             'name': self.name,
             'type': self.type,
             'parameters': self.p,
+            'keywords': list(self.band.keys()),
+            'data': self.bands
         })
 
     @staticmethod
